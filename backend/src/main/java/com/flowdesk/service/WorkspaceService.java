@@ -96,7 +96,7 @@ public class WorkspaceService {
         }
 
         User newUser = userRepository.findByEmail(req.email())
-                .orElseThrow(() -> new InvalidCredentialsException());
+                .orElseThrow(() -> new UserNotFoundException(req.email()));
 
         if (memberRepository.findByIdWorkspaceIdAndIdUserId(workspace.getId(), newUser.getId()).isPresent()) {
             throw new SlugAlreadyExistsException("User is already a member of this workspace");
@@ -133,7 +133,7 @@ public class WorkspaceService {
 
         boolean isSelf = callerId.equals(userId);
         if (!isSelf) {
-            authz.requireAdminOrOwner(workspace, callerId);
+            authz.requireOwner(workspace, callerId);
         }
 
         WorkspaceMember member = memberRepository.findByIdWorkspaceIdAndIdUserId(workspace.getId(), userId)

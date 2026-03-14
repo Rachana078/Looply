@@ -2,6 +2,7 @@ package com.flowdesk.service;
 
 import com.flowdesk.domain.*;
 import com.flowdesk.dto.*;
+import com.flowdesk.dto.TicketEvent;
 import com.flowdesk.exception.InvalidCredentialsException;
 import com.flowdesk.exception.TicketNotFoundException;
 import com.flowdesk.exception.WorkspaceAccessDeniedException;
@@ -10,6 +11,7 @@ import com.flowdesk.repository.ProjectTeamRepository;
 import com.flowdesk.repository.TicketRepository;
 import com.flowdesk.repository.UserRepository;
 import com.flowdesk.exception.ProjectNotFoundException;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,19 +30,28 @@ public class TicketService {
     private final ProjectTeamRepository teamRepository;
     private final WorkspaceService workspaceService;
     private final WorkspaceAuthorizationService authz;
+    private final SimpMessagingTemplate messaging;
+    private final NotificationService notificationService;
+    private final EmailService emailService;
 
     public TicketService(TicketRepository ticketRepository,
                          ProjectRepository projectRepository,
                          UserRepository userRepository,
                          ProjectTeamRepository teamRepository,
                          WorkspaceService workspaceService,
-                         WorkspaceAuthorizationService authz) {
+                         WorkspaceAuthorizationService authz,
+                         SimpMessagingTemplate messaging,
+                         NotificationService notificationService,
+                         EmailService emailService) {
         this.ticketRepository = ticketRepository;
         this.projectRepository = projectRepository;
         this.userRepository = userRepository;
         this.teamRepository = teamRepository;
         this.workspaceService = workspaceService;
         this.authz = authz;
+        this.messaging = messaging;
+        this.notificationService = notificationService;
+        this.emailService = emailService;
     }
 
     public TicketResponse create(String slug, String projectKey,
@@ -80,7 +91,20 @@ public class TicketService {
             ticket.setTeam(team);
         }
 
-        return toFullResponse(ticketRepository.save(ticket));
+        Ticket saved = ticketRepository.save(ticket);
+        messaging.convertAndSend(
+            "/topic/workspaces/" + slug + "/projects/" + projectKey + "/tickets",
+            new TicketEvent("CREATED", toSummaryResponse(saved))
+        );
+        if (assignee != null) {
+            String link = "/workspaces/" + slug + "/projects/" + projectKey + "/tickets/" + saved.getId();
+            notificationService.notify(assignee, reporter, "ASSIGNED",
+                    reporter.getUsername() + " assigned you a ticket",
+                    saved.getTitle(), link);
+            emailService.sendTicketAssignedEmail(
+                    assignee.getEmail(), reporter.getUsername(), saved.getTitle(), link);
+        }
+        return toFullResponse(saved);
     }
 
     @Transactional(readOnly = true)
@@ -93,6 +117,15 @@ public class TicketService {
         authz.requireMember(workspace, callerId);
         Project project = findProject(workspace, projectKey);
         return ticketRepository.findBacklog(project, statusFilter, typeFilter, assigneeIdFilter)
+                .stream().map(this::toSummaryResponse).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<TicketSummaryResponse> search(String slug, String q, UUID callerId) {
+        Workspace workspace = workspaceService.findBySlug(slug);
+        authz.requireMember(workspace, callerId);
+        if (q == null || q.isBlank()) return List.of();
+        return ticketRepository.searchByWorkspace(workspace, q.trim())
                 .stream().map(this::toSummaryResponse).toList();
     }
 
@@ -119,9 +152,20 @@ public class TicketService {
         if (req.priority() != null) ticket.setPriority(req.priority());
         if (req.storyPoints() != null) ticket.setStoryPoints(req.storyPoints());
         if (req.assigneeId() != null) {
-            User assignee = userRepository.findById(req.assigneeId())
-                    .orElseThrow(InvalidCredentialsException::new);
-            ticket.setAssignee(assignee);
+            User newAssignee = req.assigneeId().toString().isBlank() ? null :
+                    userRepository.findById(req.assigneeId()).orElseThrow(InvalidCredentialsException::new);
+            User previousAssignee = ticket.getAssignee();
+            ticket.setAssignee(newAssignee);
+            if (newAssignee != null && (previousAssignee == null || !previousAssignee.getId().equals(newAssignee.getId()))) {
+                User actor = userRepository.findById(callerId).orElse(null);
+                String link = "/workspaces/" + slug + "/projects/" + projectKey + "/tickets/" + ticket.getId();
+                String actorName = actor != null ? actor.getUsername() : "Someone";
+                notificationService.notify(newAssignee, actor, "ASSIGNED",
+                        actorName + " assigned you a ticket",
+                        ticket.getTitle(), link);
+                emailService.sendTicketAssignedEmail(
+                        newAssignee.getEmail(), actorName, ticket.getTitle(), link);
+            }
         }
 
         if (req.teamId() != null) {
@@ -134,7 +178,12 @@ public class TicketService {
             }
         }
 
-        return toFullResponse(ticketRepository.save(ticket));
+        Ticket saved = ticketRepository.save(ticket);
+        messaging.convertAndSend(
+            "/topic/workspaces/" + slug + "/projects/" + projectKey + "/tickets",
+            new TicketEvent("UPDATED", toSummaryResponse(saved))
+        );
+        return toFullResponse(saved);
     }
 
     public void delete(String slug, String projectKey, UUID ticketId, UUID callerId) {
@@ -142,7 +191,13 @@ public class TicketService {
         authz.requireAdminOrOwner(workspace, callerId);
         Project project = findProject(workspace, projectKey);
         Ticket ticket = loadTicket(ticketId, project);
+        String workspaceSlug = workspace.getSlug();
+        String projectKeyStr = project.getKey();
         ticketRepository.delete(ticket);
+        messaging.convertAndSend(
+            "/topic/workspaces/" + workspaceSlug + "/projects/" + projectKeyStr + "/tickets",
+            new TicketEvent("DELETED", ticketId.toString())
+        );
     }
 
     public TicketResponse updateStatus(String slug, String projectKey,
@@ -152,7 +207,12 @@ public class TicketService {
         Project project = findProject(workspace, projectKey);
         Ticket ticket = loadTicket(ticketId, project);
         ticket.setStatus(req.status());
-        return toFullResponse(ticketRepository.save(ticket));
+        Ticket saved = ticketRepository.save(ticket);
+        messaging.convertAndSend(
+            "/topic/workspaces/" + slug + "/projects/" + projectKey + "/tickets",
+            new TicketEvent("UPDATED", toSummaryResponse(saved))
+        );
+        return toFullResponse(saved);
     }
 
     public void reorder(String slug, String projectKey,
@@ -226,7 +286,8 @@ public class TicketService {
                 t.getStoryPoints(), t.getPosition(),
                 team != null ? team.getId() : null,
                 team != null ? team.getName() : null,
-                team != null ? team.getColor() : null
+                team != null ? team.getColor() : null,
+                t.getProject().getKey()
         );
     }
 }

@@ -17,7 +17,7 @@ import { teamBadgeClasses, teamDotClass } from '../../utils/teamColors';
 import KanbanColumn from './KanbanColumn';
 import KanbanDragOverlay from './KanbanDragOverlay';
 
-const STATUS_ORDER: TicketStatus[] = ['BACKLOG', 'TODO', 'IN_PROGRESS', 'IN_REVIEW', 'DONE'];
+const STATUS_ORDER: TicketStatus[] = ['BACKLOG', 'TODO', 'OPEN', 'IN_PROGRESS', 'IN_REVIEW', 'DONE'];
 
 interface Props {
   slug: string;
@@ -28,6 +28,7 @@ interface Props {
 
 export default function KanbanBoard({ slug, projectKey, teams, onTicketClick }: Props) {
   const { tickets, setTickets, updateTicketSummary } = useTicketStore();
+  const [dragOriginalStatus, setDragOriginalStatus] = useState<TicketStatus | null>(null);
   const { setActiveTicketId } = useBoardStore();
   const [filterTeamId, setFilterTeamId] = useState<string>('');
 
@@ -49,7 +50,10 @@ export default function KanbanBoard({ slug, projectKey, teams, onTicketClick }: 
   );
 
   function handleDragStart(event: DragStartEvent) {
-    setActiveTicketId(event.active.id as string);
+    const id = event.active.id as string;
+    setActiveTicketId(id);
+    const ticket = tickets.find(t => t.id === id);
+    setDragOriginalStatus(ticket?.status ?? null);
   }
 
   function handleDragOver(event: DragOverEvent) {
@@ -77,6 +81,8 @@ export default function KanbanBoard({ slug, projectKey, teams, onTicketClick }: 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     setActiveTicketId(null);
+    const originalStatus = dragOriginalStatus;
+    setDragOriginalStatus(null);
     if (!over) return;
 
     const activeId = active.id as string;
@@ -109,13 +115,13 @@ export default function KanbanBoard({ slug, projectKey, teams, onTicketClick }: 
 
     setTickets(updatedTickets);
 
-    // Persist: update status if changed, then reorder
+    // Persist: use original status (before optimistic update) to decide if API call needed
     const reorderEntries = reordered.map((t, i) => ({ id: t.id, position: i }));
     const snapshotTickets = tickets;
 
     (async () => {
       try {
-        if (activeTicket.status !== destStatus) {
+        if (originalStatus !== destStatus) {
           await ticketsApi.updateStatus(slug, projectKey, activeId, destStatus);
         }
         await ticketsApi.reorder(slug, projectKey, reorderEntries);

@@ -1,6 +1,7 @@
 package com.flowdesk.controller;
 
 import com.flowdesk.dto.*;
+import com.flowdesk.service.TicketService;
 import com.flowdesk.service.WorkspaceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -24,10 +25,12 @@ import java.util.UUID;
 public class WorkspaceController {
 
     private final WorkspaceService workspaceService;
+    private final TicketService ticketService;
     private final UserRepository userRepository;
 
-    public WorkspaceController(WorkspaceService workspaceService, UserRepository userRepository) {
+    public WorkspaceController(WorkspaceService workspaceService, TicketService ticketService, UserRepository userRepository) {
         this.workspaceService = workspaceService;
+        this.ticketService = ticketService;
         this.userRepository = userRepository;
     }
 
@@ -91,6 +94,14 @@ public class WorkspaceController {
                                                                       @Valid @RequestBody UpdateMemberRoleRequest req,
                                                                       @AuthenticationPrincipal UserDetails principal) {
         return ResponseEntity.ok(workspaceService.updateMemberRole(slug, userId, req, callerId(principal)));
+    }
+
+    @GetMapping("/{slug}/search")
+    @Operation(summary = "Search tickets in workspace")
+    public ResponseEntity<List<TicketSummaryResponse>> search(@PathVariable String slug,
+                                                               @RequestParam String q,
+                                                               @AuthenticationPrincipal UserDetails principal) {
+        return ResponseEntity.ok(ticketService.search(slug, q, callerId(principal)));
     }
 
     @DeleteMapping("/{slug}/members/{userId}")

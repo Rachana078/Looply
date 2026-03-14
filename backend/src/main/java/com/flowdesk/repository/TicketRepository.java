@@ -31,4 +31,14 @@ public interface TicketRepository extends JpaRepository<Ticket, UUID> {
 
     @Query("SELECT COALESCE(MAX(t.position), -1) FROM Ticket t WHERE t.project = :project")
     int findMaxPositionByProject(@Param("project") Project project);
+
+    @Query("""
+            SELECT t FROM Ticket t
+            LEFT JOIN FETCH t.assignee
+            JOIN FETCH t.reporter
+            WHERE t.workspace = :workspace
+              AND LOWER(t.title) LIKE LOWER(CONCAT('%', :q, '%'))
+            ORDER BY t.createdAt DESC
+            """)
+    List<Ticket> searchByWorkspace(@Param("workspace") Workspace workspace, @Param("q") String q);
 }

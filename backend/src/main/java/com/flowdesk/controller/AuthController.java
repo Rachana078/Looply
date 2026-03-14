@@ -1,8 +1,10 @@
 package com.flowdesk.controller;
 
 import com.flowdesk.dto.AuthResponse;
+import com.flowdesk.dto.ChangePasswordRequest;
 import com.flowdesk.dto.LoginRequest;
 import com.flowdesk.dto.RegisterRequest;
+import com.flowdesk.dto.UpdateProfileRequest;
 import com.flowdesk.dto.UserProfileResponse;
 import com.flowdesk.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -60,5 +62,30 @@ public class AuthController {
     @Operation(summary = "Get current user profile", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<UserProfileResponse> me(@AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(authService.getCurrentUser(userDetails.getUsername()));
+    }
+
+    @PatchMapping("/me")
+    @Operation(summary = "Update profile (username, avatarUrl)", security = @SecurityRequirement(name = "bearerAuth"))
+    public ResponseEntity<UserProfileResponse> updateProfile(
+            @Valid @RequestBody UpdateProfileRequest req,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(authService.updateProfile(userDetails.getUsername(), req));
+    }
+
+    @PostMapping("/me/change-password")
+    @Operation(summary = "Change password", security = @SecurityRequirement(name = "bearerAuth"))
+    public ResponseEntity<Void> changePassword(
+            @Valid @RequestBody ChangePasswordRequest req,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        authService.changePassword(userDetails.getUsername(), req);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/me")
+    @Operation(summary = "Delete own account", security = @SecurityRequirement(name = "bearerAuth"))
+    public ResponseEntity<Void> deleteAccount(@AuthenticationPrincipal UserDetails userDetails,
+                                               HttpServletResponse response) {
+        authService.deleteAccount(userDetails.getUsername(), response);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -65,7 +65,7 @@ export default function CreateTicketModal({ slug, projectKey, members, teams, on
             <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
             <input
               type="text" required value={title} onChange={e => setTitle(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
               placeholder="What needs to be done?"
             />
           </div>
@@ -75,7 +75,7 @@ export default function CreateTicketModal({ slug, projectKey, members, teams, on
               <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
               <select
                 value={type} onChange={e => setType(e.target.value as TicketType)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
               >
                 <option value="TASK">Task</option>
                 <option value="STORY">Story</option>
@@ -87,7 +87,7 @@ export default function CreateTicketModal({ slug, projectKey, members, teams, on
               <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
               <select
                 value={priority} onChange={e => setPriority(e.target.value as TicketPriority)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
               >
                 <option value="LOW">Low</option>
                 <option value="MEDIUM">Medium</option>
@@ -101,7 +101,7 @@ export default function CreateTicketModal({ slug, projectKey, members, teams, on
             <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
             <textarea
               value={description} onChange={e => setDescription(e.target.value)} rows={3}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
               placeholder="Optional description…"
             />
           </div>
@@ -112,7 +112,7 @@ export default function CreateTicketModal({ slug, projectKey, members, teams, on
               <input
                 type="number" min="0" max="99" value={storyPoints}
                 onChange={e => setStoryPoints(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
                 placeholder="—"
               />
             </div>
@@ -120,7 +120,7 @@ export default function CreateTicketModal({ slug, projectKey, members, teams, on
               <label className="block text-sm font-medium text-gray-700 mb-1">Assignee</label>
               <select
                 value={assigneeId} onChange={e => setAssigneeId(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
               >
                 <option value="">Unassigned</option>
                 {members.map(m => (
@@ -159,7 +159,7 @@ export default function CreateTicketModal({ slug, projectKey, members, teams, on
           <div className="flex gap-3 pt-1">
             <button
               type="submit" disabled={loading}
-              className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium px-5 py-2 rounded-lg"
+              className="bg-brand hover:bg-brand-dark disabled:opacity-50 text-white text-sm font-medium px-5 py-2 rounded-lg"
             >
               {loading ? 'Creating…' : 'Create ticket'}
             </button>

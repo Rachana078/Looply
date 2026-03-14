@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { projectsApi } from '../api/projects';
+import AppHeader from '../components/AppHeader';
 import { workspacesApi } from '../api/workspaces';
 import { ticketsApi } from '../api/tickets';
 import { teamsApi } from '../api/teams';
 import { useTicketStore } from '../store/ticketStore';
 import { useAuthStore } from '../store/authStore';
+import { useProjectUpdates } from '../hooks/useProjectUpdates';
 import BacklogView from '../components/backlog/BacklogView';
 import KanbanBoard from '../components/board/KanbanBoard';
 import CreateTicketModal from '../components/tickets/CreateTicketModal';
@@ -21,6 +23,8 @@ export default function ProjectDetailPage() {
   const user = useAuthStore(s => s.user);
 
   const { setTickets, addTicket } = useTicketStore();
+
+  useProjectUpdates(slug ?? '', key ?? '');
 
   const [project, setProject] = useState<Project | null>(null);
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
@@ -62,14 +66,11 @@ export default function ProjectDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-3">
-        <Link to="/" className="text-sm text-gray-500 hover:text-gray-700">Workspaces</Link>
-        <span className="text-gray-300">/</span>
-        <Link to={`/workspaces/${slug}`} className="text-sm text-gray-500 hover:text-gray-700">{slug}</Link>
-        <span className="text-gray-300">/</span>
-        <span className="text-sm font-semibold text-gray-900">{project.name}</span>
-        <span className="text-xs font-mono text-gray-400 bg-gray-100 px-2 py-0.5 rounded ml-1">{project.key}</span>
-      </header>
+      <AppHeader crumbs={[
+        { label: 'Workspaces', to: '/' },
+        { label: slug ?? '', to: `/workspaces/${slug}` },
+        { label: `${project.name} (${project.key})` },
+      ]} />
 
       <main className={`px-6 py-8 ${activeTab === 'board' ? '' : 'max-w-4xl mx-auto'}`}>
         <div className="flex items-center justify-between mb-6">
@@ -87,7 +88,7 @@ export default function ProjectDetailPage() {
           {activeTab !== 'settings' && (
             <button
               onClick={() => setShowCreate(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg"
+              className="bg-brand hover:bg-brand-dark text-white text-sm font-medium px-4 py-2 rounded-lg"
             >
               Create ticket
             </button>
@@ -95,7 +96,7 @@ export default function ProjectDetailPage() {
         </div>
 
         {activeTab === 'backlog' && (
-          <BacklogView slug={slug ?? ''} projectKey={key ?? ''} onTicketClick={handleTicketClick} />
+          <BacklogView slug={slug ?? ''} projectKey={key ?? ''} members={members} teams={teams} onTicketClick={handleTicketClick} />
         )}
         {activeTab === 'board' && slug && key && (
           <KanbanBoard slug={slug} projectKey={key} teams={teams} onTicketClick={handleTicketClick} />

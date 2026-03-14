@@ -5,16 +5,17 @@ import type { Ticket, TicketStatus, TicketType, TicketPriority } from '../../typ
 import type { WorkspaceMember } from '../../types/workspace';
 
 const STATUS_LABELS: Record<TicketStatus, string> = {
-  BACKLOG: 'Backlog', TODO: 'To Do', IN_PROGRESS: 'In Progress',
+  BACKLOG: 'Backlog', TODO: 'To Do', OPEN: 'Open', IN_PROGRESS: 'In Progress',
   IN_REVIEW: 'In Review', DONE: 'Done',
 };
 
 const STATUS_BADGE: Record<TicketStatus, string> = {
-  BACKLOG:     'bg-gray-100 text-gray-600 hover:ring-2 hover:ring-blue-400',
-  TODO:        'bg-blue-50 text-blue-700 hover:ring-2 hover:ring-blue-400',
-  IN_PROGRESS: 'bg-yellow-50 text-yellow-700 hover:ring-2 hover:ring-blue-400',
-  IN_REVIEW:   'bg-purple-50 text-purple-700 hover:ring-2 hover:ring-blue-400',
-  DONE:        'bg-green-50 text-green-700 hover:ring-2 hover:ring-blue-400',
+  BACKLOG:     'bg-gray-100 text-gray-600 hover:ring-2 hover:ring-brand',
+  TODO:        'bg-blue-50 text-blue-700 hover:ring-2 hover:ring-brand',
+  OPEN:        'bg-orange-50 text-orange-700 hover:ring-2 hover:ring-brand',
+  IN_PROGRESS: 'bg-yellow-50 text-yellow-700 hover:ring-2 hover:ring-brand',
+  IN_REVIEW:   'bg-purple-50 text-purple-700 hover:ring-2 hover:ring-brand',
+  DONE:        'bg-green-50 text-green-700 hover:ring-2 hover:ring-brand',
 };
 const TYPE_LABELS: Record<TicketType, string> = {
   STORY: 'Story', BUG: 'Bug', TASK: 'Task', EPIC: 'Epic',
@@ -97,7 +98,7 @@ export default function TicketSidePanel({ slug, projectKey, ticketId, members, c
           <select
             value={ticket.status}
             onChange={e => saveField('status', e.target.value)}
-            className={`text-xs font-semibold px-2 py-0.5 rounded-full border border-blue-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400 ${STATUS_BADGE[ticket.status]}`}
+            className={`text-xs font-semibold px-2 py-0.5 rounded-full border border-brand-light cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand ${STATUS_BADGE[ticket.status]}`}
           >
             {(Object.keys(STATUS_LABELS) as TicketStatus[]).map(s => (
               <option key={s} value={s}>{STATUS_LABELS[s]}</option>
@@ -126,11 +127,11 @@ export default function TicketSidePanel({ slug, projectKey, ticketId, members, c
             onChange={e => setEditValue(e.target.value)}
             onBlur={() => saveField('title', editValue)}
             onKeyDown={e => e.key === 'Enter' && saveField('title', editValue)}
-            className="w-full text-lg font-bold text-gray-900 border-b border-blue-400 outline-none pb-1"
+            className="w-full text-lg font-bold text-gray-900 border-b border-brand outline-none pb-1"
           />
         ) : (
           <h2
-            className="text-lg font-bold text-gray-900 cursor-pointer hover:text-blue-600"
+            className="text-lg font-bold text-gray-900 cursor-pointer hover:text-brand"
             onClick={() => startEdit('title', ticket.title)}
           >
             {ticket.title}
@@ -153,7 +154,7 @@ export default function TicketSidePanel({ slug, projectKey, ticketId, members, c
                 ))}
               </select>
             ) : (
-              <span className="cursor-pointer hover:text-blue-600 font-medium"
+              <span className="cursor-pointer hover:text-brand font-medium"
                 onClick={() => startEdit('type', ticket.type)}>
                 {TYPE_LABELS[ticket.type]}
               </span>
@@ -174,7 +175,7 @@ export default function TicketSidePanel({ slug, projectKey, ticketId, members, c
                 ))}
               </select>
             ) : (
-              <span className="cursor-pointer hover:text-blue-600 font-medium"
+              <span className="cursor-pointer hover:text-brand font-medium"
                 onClick={() => startEdit('priority', ticket.priority)}>
                 {PRIORITY_LABELS[ticket.priority]}
               </span>
@@ -193,7 +194,7 @@ export default function TicketSidePanel({ slug, projectKey, ticketId, members, c
                 className="border border-gray-300 rounded px-2 py-1 text-sm w-20"
               />
             ) : (
-              <span className="cursor-pointer hover:text-blue-600 font-medium"
+              <span className="cursor-pointer hover:text-brand font-medium"
                 onClick={() => startEdit('storyPoints', ticket.storyPoints?.toString() ?? '')}>
                 {ticket.storyPoints ?? '—'}
               </span>
@@ -215,7 +216,7 @@ export default function TicketSidePanel({ slug, projectKey, ticketId, members, c
                 ))}
               </select>
             ) : (
-              <span className="cursor-pointer hover:text-blue-600 font-medium"
+              <span className="cursor-pointer hover:text-brand font-medium"
                 onClick={() => startEdit('assigneeId', ticket.assigneeId ?? '')}>
                 {ticket.assigneeUsername ?? 'Unassigned'}
               </span>
@@ -238,11 +239,11 @@ export default function TicketSidePanel({ slug, projectKey, ticketId, members, c
               value={editValue}
               onChange={e => setEditValue(e.target.value)}
               onBlur={() => saveField('description', editValue)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
             />
           ) : (
             <p
-              className="text-sm text-gray-700 cursor-pointer hover:text-blue-600 min-h-[2rem]"
+              className="text-sm text-gray-700 cursor-pointer hover:text-brand min-h-[2rem]"
               onClick={() => startEdit('description', ticket.description ?? '')}
             >
               {ticket.description || <span className="text-gray-300">Add description…</span>}

@@ -3,8 +3,10 @@ package com.flowdesk.service;
 import com.flowdesk.domain.RefreshToken;
 import com.flowdesk.domain.User;
 import com.flowdesk.dto.AuthResponse;
+import com.flowdesk.dto.ChangePasswordRequest;
 import com.flowdesk.dto.LoginRequest;
 import com.flowdesk.dto.RegisterRequest;
+import com.flowdesk.dto.UpdateProfileRequest;
 import com.flowdesk.dto.UserProfileResponse;
 import com.flowdesk.exception.EmailAlreadyExistsException;
 import com.flowdesk.exception.InvalidCredentialsException;
@@ -41,6 +43,7 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
     private final UserDetailsService userDetailsService;
+    private final EmailService emailService;
 
     @Value("${app.jwt.refresh-token-expiry-ms}")
     private long refreshTokenExpiryMs;
@@ -50,13 +53,15 @@ public class AuthService {
                        PasswordEncoder passwordEncoder,
                        JwtUtil jwtUtil,
                        AuthenticationManager authenticationManager,
-                       UserDetailsService userDetailsService) {
+                       UserDetailsService userDetailsService,
+                       EmailService emailService) {
         this.userRepository = userRepository;
         this.refreshTokenRepository = refreshTokenRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
         this.authenticationManager = authenticationManager;
         this.userDetailsService = userDetailsService;
+        this.emailService = emailService;
     }
 
     public AuthResponse register(RegisterRequest request, HttpServletResponse response) {
@@ -72,6 +77,8 @@ public class AuthService {
         user.setUsername(request.username());
         user.setPasswordHash(passwordEncoder.encode(request.password()));
         user = userRepository.save(user);
+
+        emailService.sendWelcomeEmail(user.getEmail(), user.getUsername());
 
         return issueTokens(user, response);
     }
@@ -131,6 +138,39 @@ public class AuthService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(InvalidCredentialsException::new);
         return toProfile(user);
+    }
+
+    public UserProfileResponse updateProfile(String email, UpdateProfileRequest req) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(InvalidCredentialsException::new);
+        if (req.username() != null && !req.username().isBlank()) {
+            if (!req.username().equals(user.getUsername()) && userRepository.existsByUsername(req.username())) {
+                throw new EmailAlreadyExistsException("Username already taken: " + req.username());
+            }
+            user.setUsername(req.username());
+        }
+        if (req.avatarUrl() != null) {
+            user.setAvatarUrl(req.avatarUrl().isBlank() ? null : req.avatarUrl());
+        }
+        return toProfile(userRepository.save(user));
+    }
+
+    public void changePassword(String email, ChangePasswordRequest req) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(InvalidCredentialsException::new);
+        if (!passwordEncoder.matches(req.currentPassword(), user.getPasswordHash())) {
+            throw new InvalidCredentialsException();
+        }
+        user.setPasswordHash(passwordEncoder.encode(req.newPassword()));
+        userRepository.save(user);
+    }
+
+    public void deleteAccount(String email, HttpServletResponse response) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(InvalidCredentialsException::new);
+        refreshTokenRepository.deleteByUser(user);
+        userRepository.delete(user);
+        clearRefreshCookie(response);
     }
 
     // --- helpers ---
