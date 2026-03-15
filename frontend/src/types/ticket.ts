@@ -1,5 +1,5 @@
 export type TicketType     = 'STORY' | 'BUG' | 'TASK' | 'EPIC';
-export type TicketStatus   = 'BACKLOG' | 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE';
+export type TicketStatus   = 'BACKLOG' | 'TODO' | 'OPEN' | 'IN_PROGRESS' | 'IN_REVIEW' | 'DONE';
 export type TicketPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
 export interface ProjectTeam {
@@ -22,6 +22,7 @@ export interface TicketSummary {
   teamId: string | null;
   teamName: string | null;
   teamColor: string | null;
+  projectKey: string;
 }
 
 export interface Ticket extends TicketSummary {

@@ -94,7 +94,7 @@ export default function ProjectSettings({ slug, projectKey, callerRole, teams, o
                 value={name}
                 onChange={e => setName(e.target.value)}
                 placeholder="e.g. Backend, QA, Frontend"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
               />
             </div>
             <div>
@@ -115,7 +115,7 @@ export default function ProjectSettings({ slug, projectKey, callerRole, teams, o
             <button
               type="submit"
               disabled={creating}
-              className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-lg"
+              className="bg-brand hover:bg-brand-dark disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-lg"
             >
               {creating ? 'Creating…' : 'Add team'}
             </button>

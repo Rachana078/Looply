@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import Logo from '../components/Logo';
 import { workspacesApi } from '../api/workspaces';
 import { useWorkspaceStore } from '../store/workspaceStore';
 import { useAuth } from '../hooks/useAuth';
@@ -58,7 +59,10 @@ export default function WorkspacePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-        <span className="text-lg font-bold text-gray-900">FlowDesk</span>
+        <Link to="/" className="flex items-center gap-2">
+          <Logo size={28} />
+          <span className="text-lg font-bold text-gray-900">Looply</span>
+        </Link>
         <button onClick={handleLogout} className="text-sm text-red-600 hover:text-red-800 font-medium">
           Sign out
         </button>
@@ -69,7 +73,7 @@ export default function WorkspacePage() {
           <h1 className="text-2xl font-bold text-gray-900">Workspaces</h1>
           <button
             onClick={() => setShowCreate(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg"
+            className="bg-brand hover:bg-brand-dark text-white text-sm font-medium px-4 py-2 rounded-lg"
           >
             New workspace
           </button>
@@ -89,7 +93,7 @@ export default function WorkspacePage() {
                   required
                   value={name}
                   onChange={e => handleNameChange(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
                   placeholder="My Team"
                 />
               </div>
@@ -100,7 +104,7 @@ export default function WorkspacePage() {
                   required
                   value={slug}
                   onChange={e => setSlug(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
                   placeholder="my-team"
                 />
                 <p className="text-xs text-gray-400 mt-1">Lowercase, alphanumeric, hyphens only</p>
@@ -109,7 +113,7 @@ export default function WorkspacePage() {
                 <button
                   type="submit"
                   disabled={creating}
-                  className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-lg"
+                  className="bg-brand hover:bg-brand-dark disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-lg"
                 >
                   {creating ? 'Creating…' : 'Create'}
                 </button>
@@ -138,14 +142,14 @@ export default function WorkspacePage() {
               <Link
                 key={ws.id}
                 to={`/workspaces/${ws.slug}`}
-                className="block bg-white border border-gray-200 rounded-xl px-5 py-4 hover:border-blue-300 hover:shadow-sm transition-all"
+                className="block bg-white border border-gray-200 rounded-xl px-5 py-4 hover:border-brand-light hover:shadow-sm transition-all"
               >
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-semibold text-gray-900">{ws.name}</p>
                     <p className="text-xs text-gray-400 mt-0.5">{ws.slug}</p>
                   </div>
-                  <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+                  <span className="text-xs font-medium text-brand bg-brand/10 px-2 py-1 rounded-full">
                     {ws.callerRole}
                   </span>
                 </div>

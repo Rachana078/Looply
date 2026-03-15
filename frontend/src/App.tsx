@@ -6,6 +6,8 @@ import WorkspacePage from './pages/WorkspacePage';
 import WorkspaceDetailPage from './pages/WorkspaceDetailPage';
 import ProjectDetailPage from './pages/ProjectDetailPage';
 import TicketDetailPage from './pages/TicketDetailPage';
+import ProfilePage from './pages/ProfilePage';
+import SettingsPage from './pages/SettingsPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 export default function App() {
@@ -51,6 +53,22 @@ export default function App() {
           element={
             <ProtectedRoute>
               <TicketDetailPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <SettingsPage />
             </ProtectedRoute>
           }
         />

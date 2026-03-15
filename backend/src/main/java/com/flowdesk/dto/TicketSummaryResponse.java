@@ -19,5 +19,6 @@ public record TicketSummaryResponse(
         int position,
         UUID teamId,
         String teamName,
-        String teamColor
+        String teamColor,
+        String projectKey
 ) {}

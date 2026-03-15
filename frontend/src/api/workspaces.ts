@@ -1,5 +1,6 @@
 import api from './axios';
 import type { Workspace, WorkspaceSummary, WorkspaceMember } from '../types/workspace';
+import type { TicketSummary } from '../types/ticket';
 
 export const workspacesApi = {
   create: (data: { name: string; slug: string }) =>
@@ -28,4 +29,7 @@ export const workspacesApi = {
 
   removeMember: (slug: string, userId: string) =>
     api.delete(`/workspaces/${slug}/members/${userId}`),
+
+  search: (slug: string, q: string) =>
+    api.get<TicketSummary[]>(`/workspaces/${slug}/search`, { params: { q } }).then(r => r.data),
 };

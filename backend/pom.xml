@@ -12,10 +12,10 @@
     </parent>
 
     <groupId>com.flowdesk</groupId>
-    <artifactId>flowdesk-backend</artifactId>
+    <artifactId>looply-backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>flowdesk-backend</name>
-    <description>FlowDesk — Jira-inspired project management backend</description>
+    <name>looply-backend</name>
+    <description>Looply — Jira-inspired project management backend</description>
 
     <properties>
         <java.version>21</java.version>
@@ -28,6 +28,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- WebSocket / STOMP -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
         </dependency>
 
         <!-- Security -->
@@ -95,6 +101,12 @@
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>${springdoc.version}</version>
+        </dependency>
+
+        <!-- Mail (Resend SMTP) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
 
         <!-- Test -->

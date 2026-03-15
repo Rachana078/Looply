@@ -36,8 +36,8 @@ export const ticketsApi = {
   comments: {
     list: (slug: string, key: string, ticketId: string) =>
       api.get<Comment[]>(`${base(slug, key)}/${ticketId}/comments`).then(r => r.data),
-    create: (slug: string, key: string, ticketId: string, body: string) =>
-      api.post<Comment>(`${base(slug, key)}/${ticketId}/comments`, { body }).then(r => r.data),
+    create: (slug: string, key: string, ticketId: string, body: string, mentions?: string[]) =>
+      api.post<Comment>(`${base(slug, key)}/${ticketId}/comments`, { body, mentions }).then(r => r.data),
     delete: (slug: string, key: string, ticketId: string, commentId: string) =>
       api.delete(`${base(slug, key)}/${ticketId}/comments/${commentId}`),
   },

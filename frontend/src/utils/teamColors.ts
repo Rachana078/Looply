@@ -1,5 +1,5 @@
 export const TEAM_COLORS = {
-  blue:   { bg: 'bg-blue-100',   text: 'text-blue-700',   dot: 'bg-blue-500' },
+  blue:   { bg: 'bg-blue-100',   text: 'text-blue-700',   dot: 'bg-brand' },
   green:  { bg: 'bg-green-100',  text: 'text-green-700',  dot: 'bg-green-500' },
   purple: { bg: 'bg-purple-100', text: 'text-purple-700', dot: 'bg-purple-500' },
   red:    { bg: 'bg-red-100',    text: 'text-red-700',    dot: 'bg-red-500' },
