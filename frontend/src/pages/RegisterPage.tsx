@@ -1,8 +1,6 @@
 import { useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import api from '../api/axios';
-import { useAuthStore } from '../store/authStore';
-import type { AuthResponse } from '../types/auth';
 import Logo from '../components/Logo';
 
 // ─── tiny inline SVG icons ─────────────────────────────────────────────────
@@ -51,22 +49,20 @@ const STATS = [
 
 // ─── page ───────────────────────────────────────────────────────────────────
 export default function RegisterPage() {
-  const navigate = useNavigate();
-  const setAuth = useAuthStore((s) => s.setAuth);
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      const { data } = await api.post<AuthResponse>('/auth/register', { email, username, password });
-      setAuth(data.accessToken, data.user);
-      navigate('/');
+      await api.post('/auth/register', { email, username, password });
+      setSent(true);
     } catch (err: unknown) {
       const errData = (err as { response?: { data?: { detail?: string; errors?: Record<string, string> } } })?.response?.data;
       if (errData?.errors) {
@@ -143,7 +139,7 @@ export default function RegisterPage() {
         </div>
       </div>
 
-      {/* ── RIGHT PANEL: form ────────────────────────────────────────────── */}
+      {/* ── RIGHT PANEL ──────────────────────────────────────────────────── */}
       <div className="flex items-center justify-center bg-gray-50 p-8 min-h-screen lg:min-h-0">
         <div className="w-full max-w-sm">
 
@@ -154,75 +150,128 @@ export default function RegisterPage() {
             <span className="text-sm text-gray-400 mt-1">Project management, simplified</span>
           </div>
 
-          {/* Desktop greeting */}
-          <div className="hidden lg:block mb-8">
-            <h2 className="text-2xl font-bold text-gray-900">Create your account</h2>
-            <p className="text-sm text-gray-400 mt-1">Start managing projects in minutes</p>
-          </div>
+          {sent ? (
+            /* ── Check your email screen ── */
+            <div className="bg-white p-8 rounded-2xl shadow-md text-center">
+              <div className="w-14 h-14 bg-brand/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-7 h-7 text-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">Check your inbox</h2>
+              <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+                We sent a verification link to <span className="font-medium text-gray-700">{email}</span>.
+                Click it to activate your account.
+              </p>
+              <p className="text-xs text-gray-400">
+                Didn't get it?{' '}
+                <ResendLink email={email} />
+              </p>
+              <p className="mt-4 text-sm text-gray-500">
+                <Link to="/login" className="text-brand hover:text-brand-dark font-medium hover:underline">
+                  Back to sign in
+                </Link>
+              </p>
+            </div>
+          ) : (
+            /* ── Registration form ── */
+            <>
+              <div className="hidden lg:block mb-8">
+                <h2 className="text-2xl font-bold text-gray-900">Create your account</h2>
+                <p className="text-sm text-gray-400 mt-1">Start managing projects in minutes</p>
+              </div>
 
-          <div className="bg-white p-8 rounded-2xl shadow-md">
-            {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
-                {error}
-              </div>
-            )}
+              <div className="bg-white p-8 rounded-2xl shadow-md">
+                {error && (
+                  <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+                    {error}
+                  </div>
+                )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
-                  placeholder="you@example.com"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
-                <input
-                  type="text"
-                  required
-                  minLength={3}
-                  maxLength={50}
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
-                  placeholder="yourhandle"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                <input
-                  type="password"
-                  required
-                  minLength={8}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
-                  placeholder="••••••••"
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-brand hover:bg-brand-dark disabled:opacity-50 text-white font-medium py-2.5 px-4 rounded-lg text-sm transition-colors"
-              >
-                {loading ? 'Creating account…' : 'Create account'}
-              </button>
-            </form>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+                      placeholder="you@example.com"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                    <input
+                      type="text"
+                      required
+                      minLength={3}
+                      maxLength={50}
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+                      placeholder="yourhandle"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input
+                      type="password"
+                      required
+                      minLength={8}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+                      placeholder="••••••••"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-brand hover:bg-brand-dark disabled:opacity-50 text-white font-medium py-2.5 px-4 rounded-lg text-sm transition-colors"
+                  >
+                    {loading ? 'Creating account…' : 'Create account'}
+                  </button>
+                </form>
 
-            <p className="mt-4 text-sm text-gray-600 text-center">
-              Already have an account?{' '}
-              <Link to="/login" className="text-brand hover:text-brand-dark font-medium hover:underline">
-                Sign in
-              </Link>
-            </p>
-          </div>
+                <p className="mt-4 text-sm text-gray-600 text-center">
+                  Already have an account?{' '}
+                  <Link to="/login" className="text-brand hover:text-brand-dark font-medium hover:underline">
+                    Sign in
+                  </Link>
+                </p>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
     </div>
+  );
+}
+
+
+function ResendLink({ email }: { email: string }) {
+  const [status, setStatus] = useState<'idle' | 'sending' | 'sent'>('idle');
+
+  async function handleResend() {
+    setStatus('sending');
+    try {
+      await api.post('/auth/resend-verification', { email });
+      setStatus('sent');
+    } catch {
+      setStatus('idle');
+    }
+  }
+
+  if (status === 'sent') return <span className="text-green-600 font-medium">Sent!</span>;
+  return (
+    <button
+      onClick={handleResend}
+      disabled={status === 'sending'}
+      className="text-brand hover:text-brand-dark font-medium hover:underline disabled:opacity-50"
+    >
+      {status === 'sending' ? 'Sending…' : 'Resend it'}
+    </button>
   );
 }

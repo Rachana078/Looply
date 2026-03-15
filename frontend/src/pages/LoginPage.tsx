@@ -77,20 +77,38 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [notVerified, setNotVerified] = useState(false);
+  const [resendStatus, setResendStatus] = useState<'idle' | 'sending' | 'sent'>('idle');
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError('');
+    setNotVerified(false);
     setLoading(true);
     try {
       const { data } = await api.post<AuthResponse>('/auth/login', { email, password });
       setAuth(data.accessToken, data.user);
       navigate('/');
     } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
       const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-      setError(msg ?? 'Login failed. Please try again.');
+      if (status === 403) {
+        setNotVerified(true);
+      } else {
+        setError(msg ?? 'Login failed. Please try again.');
+      }
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleResend() {
+    setResendStatus('sending');
+    try {
+      await api.post('/auth/resend-verification', { email });
+      setResendStatus('sent');
+    } catch {
+      setResendStatus('idle');
     }
   }
 
@@ -190,6 +208,19 @@ export default function LoginPage() {
           </div>
 
           <div className="bg-white p-8 rounded-2xl shadow-md">
+            {notVerified && (
+              <div className="mb-4 p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg text-sm">
+                <p className="font-medium mb-1">Email not verified</p>
+                <p className="text-amber-700">Please check your inbox and click the verification link.</p>
+                <button
+                  onClick={handleResend}
+                  disabled={resendStatus !== 'idle'}
+                  className="mt-2 text-brand hover:text-brand-dark font-medium hover:underline disabled:opacity-50 text-xs"
+                >
+                  {resendStatus === 'sending' ? 'Sending…' : resendStatus === 'sent' ? '✓ Sent!' : 'Resend verification email'}
+                </button>
+              </div>
+            )}
             {error && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
                 {error}
