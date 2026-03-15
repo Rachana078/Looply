@@ -1,7 +1,7 @@
 import api from './axios';
 import type {
   Ticket, TicketSummary, CreateTicketPayload,
-  UpdateTicketPayload, TicketStatus, TicketType, ReorderEntry, Comment,
+  UpdateTicketPayload, TicketStatus, TicketType, ReorderEntry, Comment, TicketHistoryEntry,
 } from '../types/ticket';
 
 const base = (slug: string, key: string) =>
@@ -41,4 +41,7 @@ export const ticketsApi = {
     delete: (slug: string, key: string, ticketId: string, commentId: string) =>
       api.delete(`${base(slug, key)}/${ticketId}/comments/${commentId}`),
   },
+
+  history: (slug: string, key: string, ticketId: string) =>
+    api.get<TicketHistoryEntry[]>(`${base(slug, key)}/${ticketId}/history`).then(r => r.data),
 };

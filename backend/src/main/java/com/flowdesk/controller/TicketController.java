@@ -3,6 +3,7 @@ package com.flowdesk.controller;
 import com.flowdesk.domain.TicketStatus;
 import com.flowdesk.domain.TicketType;
 import com.flowdesk.dto.*;
+import com.flowdesk.dto.TicketHistoryResponse;
 import com.flowdesk.exception.InvalidCredentialsException;
 import com.flowdesk.repository.UserRepository;
 import com.flowdesk.service.TicketService;
@@ -91,6 +92,15 @@ public class TicketController {
             @Valid @RequestBody UpdateTicketStatusRequest req,
             @AuthenticationPrincipal UserDetails principal) {
         return ResponseEntity.ok(ticketService.updateStatus(slug, key, ticketId, req, callerId(principal)));
+    }
+
+    @GetMapping("/{ticketId}/history")
+    @Operation(summary = "Get ticket change history")
+    public ResponseEntity<List<TicketHistoryResponse>> getHistory(
+            @PathVariable String slug, @PathVariable String key,
+            @PathVariable UUID ticketId,
+            @AuthenticationPrincipal UserDetails principal) {
+        return ResponseEntity.ok(ticketService.getHistory(slug, key, ticketId, callerId(principal)));
     }
 
     @PatchMapping("/reorder")

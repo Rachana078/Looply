@@ -8,6 +8,7 @@ import com.flowdesk.exception.TicketNotFoundException;
 import com.flowdesk.exception.WorkspaceAccessDeniedException;
 import com.flowdesk.repository.ProjectRepository;
 import com.flowdesk.repository.ProjectTeamRepository;
+import com.flowdesk.repository.TicketHistoryRepository;
 import com.flowdesk.repository.TicketRepository;
 import com.flowdesk.repository.UserRepository;
 import com.flowdesk.exception.ProjectNotFoundException;
@@ -33,6 +34,7 @@ public class TicketService {
     private final SimpMessagingTemplate messaging;
     private final NotificationService notificationService;
     private final EmailService emailService;
+    private final TicketHistoryRepository historyRepository;
 
     public TicketService(TicketRepository ticketRepository,
                          ProjectRepository projectRepository,
@@ -42,7 +44,8 @@ public class TicketService {
                          WorkspaceAuthorizationService authz,
                          SimpMessagingTemplate messaging,
                          NotificationService notificationService,
-                         EmailService emailService) {
+                         EmailService emailService,
+                         TicketHistoryRepository historyRepository) {
         this.ticketRepository = ticketRepository;
         this.projectRepository = projectRepository;
         this.userRepository = userRepository;
@@ -52,6 +55,7 @@ public class TicketService {
         this.messaging = messaging;
         this.notificationService = notificationService;
         this.emailService = emailService;
+        this.historyRepository = historyRepository;
     }
 
     public TicketResponse create(String slug, String projectKey,
@@ -145,26 +149,46 @@ public class TicketService {
         authz.requireMember(workspace, callerId);
         Project project = findProject(workspace, projectKey);
         Ticket ticket = loadTicket(ticketId, project);
+        User actor = userRepository.findById(callerId).orElseThrow(InvalidCredentialsException::new);
 
-        if (req.title() != null) ticket.setTitle(req.title());
+        if (req.title() != null && !req.title().equals(ticket.getTitle())) {
+            recordChange(ticket, actor, "title", ticket.getTitle(), req.title());
+            ticket.setTitle(req.title());
+        }
         if (req.description() != null) ticket.setDescription(req.description());
-        if (req.type() != null) ticket.setType(req.type());
-        if (req.priority() != null) ticket.setPriority(req.priority());
-        if (req.storyPoints() != null) ticket.setStoryPoints(req.storyPoints());
+        if (req.type() != null && !req.type().equals(ticket.getType())) {
+            recordChange(ticket, actor, "type", ticket.getType().name(), req.type().name());
+            ticket.setType(req.type());
+        }
+        if (req.priority() != null && !req.priority().equals(ticket.getPriority())) {
+            recordChange(ticket, actor, "priority", ticket.getPriority().name(), req.priority().name());
+            ticket.setPriority(req.priority());
+        }
+        if (req.storyPoints() != null) {
+            String oldSp = ticket.getStoryPoints() != null ? ticket.getStoryPoints().toString() : null;
+            String newSp = req.storyPoints() > 0 ? req.storyPoints().toString() : null;
+            if (!java.util.Objects.equals(oldSp, newSp)) {
+                recordChange(ticket, actor, "storyPoints", oldSp, newSp);
+            }
+            ticket.setStoryPoints(req.storyPoints() > 0 ? req.storyPoints() : null);
+        }
         if (req.assigneeId() != null) {
             User newAssignee = req.assigneeId().toString().isBlank() ? null :
                     userRepository.findById(req.assigneeId()).orElseThrow(InvalidCredentialsException::new);
             User previousAssignee = ticket.getAssignee();
+            String oldName = previousAssignee != null ? previousAssignee.getUsername() : null;
+            String newName = newAssignee != null ? newAssignee.getUsername() : null;
+            if (!java.util.Objects.equals(oldName, newName)) {
+                recordChange(ticket, actor, "assignee", oldName, newName);
+            }
             ticket.setAssignee(newAssignee);
             if (newAssignee != null && (previousAssignee == null || !previousAssignee.getId().equals(newAssignee.getId()))) {
-                User actor = userRepository.findById(callerId).orElse(null);
                 String link = "/workspaces/" + slug + "/projects/" + projectKey + "/tickets/" + ticket.getId();
-                String actorName = actor != null ? actor.getUsername() : "Someone";
                 notificationService.notify(newAssignee, actor, "ASSIGNED",
-                        actorName + " assigned you a ticket",
+                        actor.getUsername() + " assigned you a ticket",
                         ticket.getTitle(), link);
                 emailService.sendTicketAssignedEmail(
-                        newAssignee.getEmail(), actorName, ticket.getTitle(), link);
+                        newAssignee.getEmail(), actor.getUsername(), ticket.getTitle(), link);
             }
         }
 
@@ -206,6 +230,10 @@ public class TicketService {
         authz.requireMember(workspace, callerId);
         Project project = findProject(workspace, projectKey);
         Ticket ticket = loadTicket(ticketId, project);
+        User actor = userRepository.findById(callerId).orElseThrow(InvalidCredentialsException::new);
+        if (!req.status().equals(ticket.getStatus())) {
+            recordChange(ticket, actor, "status", ticket.getStatus().name(), req.status().name());
+        }
         ticket.setStatus(req.status());
         Ticket saved = ticketRepository.save(ticket);
         messaging.convertAndSend(
@@ -213,6 +241,21 @@ public class TicketService {
             new TicketEvent("UPDATED", toSummaryResponse(saved))
         );
         return toFullResponse(saved);
+    }
+
+    @Transactional(readOnly = true)
+    public List<TicketHistoryResponse> getHistory(String slug, String projectKey,
+                                                   UUID ticketId, UUID callerId) {
+        Workspace workspace = workspaceService.findBySlug(slug);
+        authz.requireMember(workspace, callerId);
+        Project project = findProject(workspace, projectKey);
+        Ticket ticket = loadTicket(ticketId, project);
+        return historyRepository.findByTicketOrderByChangedAtDesc(ticket)
+                .stream().map(h -> new TicketHistoryResponse(
+                        h.getId(), h.getField(), h.getOldValue(), h.getNewValue(),
+                        h.getChangedBy().getId(), h.getChangedBy().getUsername(),
+                        h.getChangedAt()
+                )).toList();
     }
 
     public void reorder(String slug, String projectKey,
@@ -238,6 +281,16 @@ public class TicketService {
     }
 
     // --- helpers ---
+
+    private void recordChange(Ticket ticket, User actor, String field, String oldValue, String newValue) {
+        TicketHistory entry = new TicketHistory();
+        entry.setTicket(ticket);
+        entry.setChangedBy(actor);
+        entry.setField(field);
+        entry.setOldValue(oldValue);
+        entry.setNewValue(newValue);
+        historyRepository.save(entry);
+    }
 
     private Project findProject(Workspace workspace, String key) {
         return projectRepository.findByWorkspaceAndKey(workspace, key)
