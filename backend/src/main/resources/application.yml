@@ -38,4 +38,4 @@ app:
   base-url: ${BASE_URL:http://localhost:5173}
 
 server:
-  port: 8080
+  port: ${PORT:8080}
