@@ -1,16 +1,20 @@
 package com.flowdesk.service;
 
+import com.flowdesk.domain.EmailVerificationToken;
 import com.flowdesk.domain.RefreshToken;
 import com.flowdesk.domain.User;
 import com.flowdesk.dto.AuthResponse;
 import com.flowdesk.dto.ChangePasswordRequest;
 import com.flowdesk.dto.LoginRequest;
+import com.flowdesk.dto.MessageResponse;
 import com.flowdesk.dto.RegisterRequest;
 import com.flowdesk.dto.UpdateProfileRequest;
 import com.flowdesk.dto.UserProfileResponse;
 import com.flowdesk.exception.EmailAlreadyExistsException;
+import com.flowdesk.exception.EmailNotVerifiedException;
 import com.flowdesk.exception.InvalidCredentialsException;
 import com.flowdesk.exception.TokenRefreshException;
+import com.flowdesk.repository.EmailVerificationTokenRepository;
 import com.flowdesk.repository.RefreshTokenRepository;
 import com.flowdesk.repository.UserRepository;
 import com.flowdesk.security.JwtUtil;
@@ -39,6 +43,7 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final EmailVerificationTokenRepository verificationTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
@@ -48,8 +53,12 @@ public class AuthService {
     @Value("${app.jwt.refresh-token-expiry-ms}")
     private long refreshTokenExpiryMs;
 
+    @Value("${app.base-url:http://localhost:5173}")
+    private String baseUrl;
+
     public AuthService(UserRepository userRepository,
                        RefreshTokenRepository refreshTokenRepository,
+                       EmailVerificationTokenRepository verificationTokenRepository,
                        PasswordEncoder passwordEncoder,
                        JwtUtil jwtUtil,
                        AuthenticationManager authenticationManager,
@@ -57,6 +66,7 @@ public class AuthService {
                        EmailService emailService) {
         this.userRepository = userRepository;
         this.refreshTokenRepository = refreshTokenRepository;
+        this.verificationTokenRepository = verificationTokenRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
         this.authenticationManager = authenticationManager;
@@ -64,7 +74,7 @@ public class AuthService {
         this.emailService = emailService;
     }
 
-    public AuthResponse register(RegisterRequest request, HttpServletResponse response) {
+    public MessageResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.email())) {
             throw new EmailAlreadyExistsException(request.email());
         }
@@ -76,23 +86,62 @@ public class AuthService {
         user.setEmail(request.email());
         user.setUsername(request.username());
         user.setPasswordHash(passwordEncoder.encode(request.password()));
+        user.setEmailVerified(false);
         user = userRepository.save(user);
 
-        emailService.sendWelcomeEmail(user.getEmail(), user.getUsername());
+        String token = issueVerificationToken(user);
+        String verificationUrl = baseUrl + "/verify-email?token=" + token;
+        emailService.sendVerificationEmail(user.getEmail(), user.getUsername(), verificationUrl);
 
+        return new MessageResponse("Check your inbox — we've sent a verification link to " + user.getEmail());
+    }
+
+    public AuthResponse verifyEmail(String token, HttpServletResponse response) {
+        EmailVerificationToken vt = verificationTokenRepository.findByToken(token)
+                .orElseThrow(() -> new InvalidCredentialsException("Invalid or expired verification link"));
+        if (vt.isUsed()) {
+            throw new InvalidCredentialsException("This verification link has already been used");
+        }
+        if (vt.getExpiresAt().isBefore(java.time.OffsetDateTime.now())) {
+            throw new InvalidCredentialsException("This verification link has expired");
+        }
+        User user = vt.getUser();
+        user.setEmailVerified(true);
+        userRepository.save(user);
+        vt.setUsed(true);
+        verificationTokenRepository.save(vt);
+
+        emailService.sendWelcomeEmail(user.getEmail(), user.getUsername());
         return issueTokens(user, response);
     }
 
+    public MessageResponse resendVerification(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new InvalidCredentialsException("No account found with that email address"));
+        if (user.isEmailVerified()) {
+            return new MessageResponse("Your email is already verified. You can sign in.");
+        }
+        verificationTokenRepository.deleteByUserId(user.getId());
+        String token = issueVerificationToken(user);
+        String verificationUrl = baseUrl + "/verify-email?token=" + token;
+        emailService.sendVerificationEmail(user.getEmail(), user.getUsername(), verificationUrl);
+        return new MessageResponse("Verification email resent to " + email);
+    }
+
     public AuthResponse login(LoginRequest request, HttpServletResponse response) {
+        User user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new InvalidCredentialsException("No account found with that email address"));
+
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.email(), request.password()));
         } catch (BadCredentialsException e) {
-            throw new InvalidCredentialsException();
+            throw new InvalidCredentialsException("Incorrect password");
         }
 
-        User user = userRepository.findByEmail(request.email())
-                .orElseThrow(InvalidCredentialsException::new);
+        if (!user.isEmailVerified()) {
+            throw new EmailNotVerifiedException();
+        }
 
         return issueTokens(user, response);
     }
@@ -174,6 +223,16 @@ public class AuthService {
     }
 
     // --- helpers ---
+
+    private String issueVerificationToken(User user) {
+        String raw = UUID.randomUUID().toString();
+        EmailVerificationToken vt = new EmailVerificationToken();
+        vt.setUser(user);
+        vt.setToken(raw);
+        vt.setExpiresAt(java.time.OffsetDateTime.now().plusHours(24));
+        verificationTokenRepository.save(vt);
+        return raw;
+    }
 
     private AuthResponse issueTokens(User user, HttpServletResponse response) {
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
