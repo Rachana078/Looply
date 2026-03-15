@@ -7,7 +7,7 @@ import { workspacesApi } from '../api/workspaces';
 import { useTicketStore } from '../store/ticketStore';
 import { useAuthStore } from '../store/authStore';
 import { useCommentUpdates } from '../hooks/useCommentUpdates';
-import type { Ticket, TicketStatus, TicketType, TicketPriority, Comment, ProjectTeam } from '../types/ticket';
+import type { Ticket, TicketStatus, TicketType, TicketPriority, Comment, ProjectTeam, TicketHistoryEntry } from '../types/ticket';
 import type { WorkspaceMember } from '../types/workspace';
 import { teamBadgeClasses, teamDotClass } from '../utils/teamColors';
 
@@ -64,6 +64,7 @@ export default function TicketDetailPage() {
   const [comments, setComments] = useState<Comment[]>([]);
   const [commentBody, setCommentBody] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
+  const [history, setHistory] = useState<TicketHistoryEntry[]>([]);
   const commentTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   // @mention dropdown state
@@ -109,6 +110,9 @@ export default function TicketDetailPage() {
       ticketsApi.comments.list(slug, key, ticketId)
         .then(setComments)
         .catch(() => {});
+      ticketsApi.history(slug, key, ticketId)
+        .then(setHistory)
+        .catch(() => {});
     }).finally(() => setLoading(false));
   }, [slug, key, ticketId]);
 
@@ -150,6 +154,7 @@ export default function TicketDetailPage() {
       }
       setTicket(updated);
       updateTicketInList(updated);
+      ticketsApi.history(slug, key, t.id).then(setHistory).catch(() => {});
     } catch { /* silently revert */ }
   }
 
@@ -459,6 +464,19 @@ export default function TicketDetailPage() {
               </div>
             </form>
           </div>
+
+          {/* History */}
+          {history.length > 0 && (
+            <div>
+              <hr className="border-gray-200" />
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mt-6 mb-4">History</p>
+              <div className="space-y-1">
+                {history.map(h => (
+                  <HistoryRow key={h.id} entry={h} />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* RIGHT SIDEBAR — metadata card */}
@@ -577,6 +595,44 @@ function SidebarField({ label, children, last = false }: { label: string; childr
     <div className={`px-5 py-4 ${!last ? 'border-b border-gray-100' : ''}`}>
       <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1.5">{label}</p>
       {children}
+    </div>
+  );
+}
+
+const FIELD_LABELS: Record<string, string> = {
+  status: 'Status', priority: 'Priority', assignee: 'Assignee',
+  type: 'Type', title: 'Title', storyPoints: 'Story Points',
+};
+
+function HistoryRow({ entry }: { entry: TicketHistoryEntry }) {
+  const label = FIELD_LABELS[entry.field] ?? entry.field;
+  const date = new Date(entry.changedAt).toLocaleDateString(undefined, {
+    month: 'short', day: 'numeric', year: 'numeric',
+  });
+
+  return (
+    <div className="flex items-start gap-3 py-2.5 group">
+      <div className="w-1.5 h-1.5 rounded-full bg-gray-300 mt-2 shrink-0" />
+      <div className="flex-1 min-w-0">
+        <p className="text-sm text-gray-600 leading-snug">
+          <span className="font-semibold text-gray-800">{entry.changedByUsername}</span>
+          {' changed '}
+          <span className="font-medium text-gray-700">{label}</span>
+          {entry.oldValue && entry.newValue ? (
+            <>
+              {' from '}
+              <span className="line-through text-gray-400">{entry.oldValue}</span>
+              {' to '}
+              <span className="font-medium text-brand">{entry.newValue}</span>
+            </>
+          ) : entry.newValue ? (
+            <> to <span className="font-medium text-brand">{entry.newValue}</span></>
+          ) : (
+            <> to <span className="text-gray-400 italic">none</span></>
+          )}
+        </p>
+        <p className="text-xs text-gray-400 mt-0.5">{date}</p>
+      </div>
     </div>
   );
 }

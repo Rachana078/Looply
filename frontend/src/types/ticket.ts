@@ -72,3 +72,13 @@ export interface Comment {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface TicketHistoryEntry {
+  id: string;
+  field: string;
+  oldValue: string | null;
+  newValue: string | null;
+  changedById: string;
+  changedByUsername: string;
+  changedAt: string;
+}
