@@ -70,61 +70,6 @@ Looply/
 
 ---
 
-## Getting Started
-
-### Prerequisites
-
-- Java 21+
-- Node.js 20+
-- Maven 3.9+
-- A [Supabase](https://supabase.com) project (free tier works)
-- A [Resend](https://resend.com) account for email (free tier works)
-
-### Backend
-
-1. Copy the example env file and fill in your values:
-   ```bash
-   cd backend
-   cp .env.example .env
-   ```
-
-2. Required environment variables:
-   ```
-   DB_URL=jdbc:postgresql://<supabase-host>:5432/postgres
-   DB_USERNAME=postgres
-   DB_PASSWORD=<your-password>
-   JWT_SECRET=<run: openssl rand -base64 32>
-   RESEND_API_KEY=<your-resend-api-key>
-   MAIL_FROM=noreply@yourdomain.com
-   BASE_URL=http://localhost:5173
-   ```
-
-3. Run the backend:
-   ```bash
-   export $(cat .env | xargs) && ./mvnw spring-boot:run
-   ```
-
-   Flyway will automatically run all migrations on startup.
-
-4. API docs available at: `http://localhost:8080/swagger-ui.html`
-
-### Frontend
-
-1. Install dependencies:
-   ```bash
-   cd frontend
-   npm install
-   ```
-
-2. Start the dev server:
-   ```bash
-   npm run dev
-   ```
-
-3. Open `http://localhost:5173`
-
----
-
 ## API Overview
 
 | Method | Endpoint | Description |
@@ -146,23 +91,6 @@ Looply/
 | GET | `/api/v1/notifications` | List notifications |
 
 Full interactive docs at `/swagger-ui.html` when the backend is running.
-
----
-
-## Database Migrations
-
-Flyway migrations live in `backend/src/main/resources/db/migration/`:
-
-| Version | Description |
-|---|---|
-| V1 | Users and refresh tokens |
-| V2 | Workspaces and projects |
-| V3 | Tickets |
-| V4 | Comments |
-| V5 | Teams |
-| V6 | Notifications |
-| V7 | Add OPEN ticket status |
-| V8 | Ticket history (audit log) |
 
 ---
 
