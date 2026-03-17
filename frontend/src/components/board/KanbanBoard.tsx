@@ -171,7 +171,8 @@ export default function KanbanBoard({ slug, projectKey, teams, onTicketClick }: 
           )}
         </div>
       )}
-      <div className="flex gap-4 overflow-x-auto pb-4">
+      <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 pb-4">
+        <div className="flex gap-4 min-w-max">
         {columns.map(({ status, tickets: colTickets }) => (
           <KanbanColumn
             key={status}
@@ -182,6 +183,7 @@ export default function KanbanBoard({ slug, projectKey, teams, onTicketClick }: 
             onTicketClick={onTicketClick}
           />
         ))}
+        </div>
       </div>
       <KanbanDragOverlay />
     </DndContext>

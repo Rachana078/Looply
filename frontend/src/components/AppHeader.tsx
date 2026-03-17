@@ -58,14 +58,14 @@ export default function AppHeader({ crumbs, right }: Props) {
 
   return (
     <>
-      <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
+      <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link to="/" className="flex items-center gap-2 shrink-0">
             <Logo size={26} />
             <span className="text-sm font-bold text-gray-800">Looply</span>
           </Link>
-          <span className="text-gray-200 select-none">|</span>
-        <nav className="flex items-center gap-1.5 text-sm text-gray-400">
+          <span className="text-gray-200 select-none hidden sm:inline">|</span>
+        <nav className="hidden sm:flex items-center gap-1.5 text-sm text-gray-400">
           {crumbs.map((c, i) => (
             <span key={i} className="flex items-center gap-1.5">
               {i > 0 && <span>/</span>}
@@ -88,7 +88,7 @@ export default function AppHeader({ crumbs, right }: Props) {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <span>Search</span>
-              <kbd className="font-mono">⌘K</kbd>
+              <kbd className="font-mono hidden sm:inline">⌘K</kbd>
             </button>
           )}
           <NotificationBell />
@@ -106,7 +106,7 @@ export default function AppHeader({ crumbs, right }: Props) {
               </button>
 
               {menuOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
+                <div className="absolute right-0 mt-2 w-48 sm:w-56 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
                   {/* User info */}
                   <div className="px-4 py-3 flex items-center gap-3">
                     <div className="w-9 h-9 rounded-full bg-brand text-white text-sm font-bold flex items-center justify-center shrink-0">

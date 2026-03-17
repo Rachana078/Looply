@@ -292,7 +292,7 @@ export default function TicketDetailPage() {
       ]} />
 
       {/* Ticket header — ID + title + status + delete */}
-      <div className="bg-white border-b border-gray-100 px-8 py-5">
+      <div className="bg-white border-b border-gray-100 px-4 sm:px-8 py-4 sm:py-5">
         <div className="max-w-6xl mx-auto flex items-start gap-4 justify-between">
           {/* Left: badge + editable title */}
           <div className="flex items-start gap-3 min-w-0 flex-1">
@@ -343,10 +343,10 @@ export default function TicketDetailPage() {
       </div>
 
       {/* Main body — 65/35 split */}
-      <main className="max-w-6xl mx-auto px-8 py-6 flex gap-6 items-start">
+      <main className="max-w-6xl mx-auto px-4 sm:px-8 py-4 sm:py-6 flex flex-col md:flex-row gap-6 items-start">
 
         {/* LEFT COLUMN — description + comments */}
-        <div className="flex-[65] min-w-0 space-y-6">
+        <div className="w-full md:flex-[65] min-w-0 space-y-6">
 
           {/* Description */}
           <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
@@ -480,7 +480,7 @@ export default function TicketDetailPage() {
         </div>
 
         {/* RIGHT SIDEBAR — metadata card */}
-        <div className="flex-[35] min-w-[240px] max-w-xs">
+        <div className="w-full md:flex-[35] md:min-w-[240px] md:max-w-xs">
           <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
 
             <SidebarField label="Type">

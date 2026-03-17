@@ -58,7 +58,7 @@ export default function WorkspacePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+      <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
           <Logo size={28} />
           <span className="text-lg font-bold text-gray-900">Looply</span>
@@ -68,7 +68,7 @@ export default function WorkspacePage() {
         </button>
       </header>
 
-      <main className="max-w-3xl mx-auto px-6 py-10">
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Workspaces</h1>
           <button

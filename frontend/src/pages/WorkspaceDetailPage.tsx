@@ -105,7 +105,7 @@ export default function WorkspaceDetailPage() {
     <div className="min-h-screen bg-gray-50">
       <AppHeader crumbs={[{ label: 'Workspaces', to: '/' }, { label: workspace.name }]} />
 
-      <main className="max-w-4xl mx-auto px-6 py-10">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-10">
         {/* Projects section */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-gray-900">Projects</h2>

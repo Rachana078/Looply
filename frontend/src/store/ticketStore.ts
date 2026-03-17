@@ -16,7 +16,11 @@ export const useTicketStore = create<TicketState>((set) => ({
   tickets: [],
   selectedTicket: null,
   setTickets: (tickets) => set({ tickets }),
-  addTicket: (ticket) => set((s) => ({ tickets: [...s.tickets, ticket] })),
+  addTicket: (ticket) => set((s) => (
+    s.tickets.some(t => t.id === ticket.id)
+      ? s
+      : { tickets: [...s.tickets, ticket] }
+  )),
   updateTicketInList: (updated) =>
     set((s) => ({
       tickets: s.tickets.map(t => t.id === updated.id ? { ...t, ...updated } : t),

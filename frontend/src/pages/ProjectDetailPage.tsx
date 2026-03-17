@@ -22,7 +22,7 @@ export default function ProjectDetailPage() {
   const navigate = useNavigate();
   const user = useAuthStore(s => s.user);
 
-  const { setTickets, addTicket } = useTicketStore();
+  const { setTickets } = useTicketStore();
 
   useProjectUpdates(slug ?? '', key ?? '');
 
@@ -57,8 +57,8 @@ export default function ProjectDetailPage() {
     navigate(`/workspaces/${slug}/projects/${key}/tickets/${ticketId}`);
   }
 
-  function handleTicketCreated(ticket: TicketSummary) {
-    addTicket(ticket);
+  function handleTicketCreated(_ticket: TicketSummary) {
+    // WebSocket CREATED event handles adding to store — no optimistic add needed
   }
 
   if (loading) return <div className="flex items-center justify-center h-screen text-gray-400">Loading…</div>;
@@ -72,14 +72,14 @@ export default function ProjectDetailPage() {
         { label: `${project.name} (${project.key})` },
       ]} />
 
-      <main className={`px-6 py-8 ${activeTab === 'board' ? '' : 'max-w-4xl mx-auto'}`}>
+      <main className={`px-4 sm:px-6 py-8 ${activeTab === 'board' ? '' : 'max-w-4xl mx-auto'}`}>
         <div className="flex items-center justify-between mb-6">
-          <div className="flex bg-gray-100 rounded-lg p-0.5 gap-0.5">
+          <div className="flex bg-gray-100 rounded-lg p-0.5 gap-0.5 overflow-x-auto">
             {(['backlog', 'board', 'settings'] as ViewTab[]).map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium capitalize transition-colors ${activeTab === tab ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium capitalize transition-colors whitespace-nowrap flex-shrink-0 ${activeTab === tab ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
               >
                 {tab}
               </button>
@@ -88,7 +88,7 @@ export default function ProjectDetailPage() {
           {activeTab !== 'settings' && (
             <button
               onClick={() => setShowCreate(true)}
-              className="bg-brand hover:bg-brand-dark text-white text-sm font-medium px-4 py-2 rounded-lg"
+              className="bg-brand hover:bg-brand-dark text-white text-sm font-medium px-4 py-2 rounded-lg shrink-0 ml-2"
             >
               Create ticket
             </button>

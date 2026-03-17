@@ -64,7 +64,7 @@ export default function KanbanColumn({ status, tickets, slug, projectKey, onTick
   const { setNodeRef, isOver } = useDroppable({ id: status });
 
   return (
-    <div className="flex flex-col w-64 flex-shrink-0">
+    <div className="flex flex-col w-[280px] flex-shrink-0">
       {/* Header card with colored top border */}
       <div className={`bg-white rounded-xl border border-gray-200 border-t-[3px] ${STATUS_BORDER[status]} px-3 py-2.5 mb-2 flex items-center justify-between shadow-sm`}>
         <div className="flex items-center gap-2">
