@@ -22,10 +22,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         // Plain WebSocket endpoint (no SockJS) — used by @stomp/stompjs with brokerURL
         registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("http://localhost:5173");
+                .setAllowedOriginPatterns("http://localhost:5173", "https://looply.rachanap.com");
         // SockJS fallback endpoint
         registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("http://localhost:5173")
+                .setAllowedOriginPatterns("http://localhost:5173", "https://looply.rachanap.com")
                 .withSockJS();
     }
 

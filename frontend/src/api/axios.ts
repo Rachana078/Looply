@@ -1,7 +1,9 @@
 import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080/api/v1';
+const BASE_URL = window.location.hostname === 'localhost'
+  ? 'http://localhost:8080/api/v1'
+  : 'https://looply-64p9.onrender.com/api/v1';
 
 const api = axios.create({
   baseURL: BASE_URL,
