@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { workspacesApi } from '../api/workspaces';
 import { projectsApi } from '../api/projects';
 import { useAuthStore } from '../store/authStore';
@@ -8,6 +8,7 @@ import type { Workspace, Project, WorkspaceMember } from '../types/workspace';
 
 export default function WorkspaceDetailPage() {
   const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
   const user = useAuthStore(s => s.user);
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
@@ -90,6 +91,12 @@ export default function WorkspaceDetailPage() {
     } finally {
       setInviting(false);
     }
+  }
+
+  async function handleDeleteWorkspace() {
+    if (!slug || !confirm(`Delete workspace "${workspace?.name}"? This cannot be undone.`)) return;
+    await workspacesApi.delete(slug);
+    navigate('/');
   }
 
   async function handleRemoveMember(userId: string) {
@@ -289,6 +296,19 @@ export default function WorkspaceDetailPage() {
             ))}
           </div>
         </div>
+        {/* Danger zone — owner only */}
+        {callerRole === 'OWNER' && (
+          <div className="mt-12 border border-red-200 rounded-xl p-6">
+            <h2 className="text-base font-semibold text-red-600 mb-1">Danger zone</h2>
+            <p className="text-sm text-gray-500 mb-4">Deleting this workspace will remove all projects, tickets, and members permanently.</p>
+            <button
+              onClick={handleDeleteWorkspace}
+              className="bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-4 py-2 rounded-lg"
+            >
+              Delete workspace
+            </button>
+          </div>
+        )}
       </main>
     </div>
   );
