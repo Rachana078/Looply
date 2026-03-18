@@ -10,42 +10,44 @@ A Jira-inspired project management app for teams to plan sprints, track bugs, an
 
 <table>
   <tr>
+    <td align="center"><strong>Login</strong></td>
+    <td align="center"><strong>Signup</strong></td>
+  </tr>
+  <tr>
     <td><img src="https://github.com/user-attachments/assets/d5a70b0d-8c9e-46ae-825e-27f92248fb04" alt="Login" /></td>
     <td><img src="https://github.com/user-attachments/assets/2cd2363e-4b0d-475d-aa19-d09b0346c09b" alt="Signup" /></td>
   </tr>
   <tr>
-    <td align="center">Login</td>
-    <td align="center">Signup</td>
+    <td align="center"><strong>Workspaces</strong></td>
+    <td align="center"><strong>Inside Workspace</strong></td>
   </tr>
   <tr>
     <td><img src="https://github.com/user-attachments/assets/46215d8c-fff2-42df-b0fb-ca61c08a977c" alt="Workspaces" /></td>
     <td><img src="https://github.com/user-attachments/assets/14d7fd71-be69-4b0b-92a5-c988b8e1cc21" alt="Inside Workspace" /></td>
   </tr>
   <tr>
-    <td align="center">Workspaces</td>
-    <td align="center">Inside Workspace</td>
+    <td align="center"><strong>Backlog</strong></td>
+    <td align="center"><strong>Kanban Board</strong></td>
   </tr>
   <tr>
     <td><img src="https://github.com/user-attachments/assets/40fbf103-3e79-4a0e-969f-ef2787ccf3c0" alt="Backlog" /></td>
     <td><img src="https://github.com/user-attachments/assets/98cfbc6a-fc81-4e75-8fdb-bc294a034cb0" alt="Kanban Board" /></td>
   </tr>
   <tr>
-    <td align="center">Backlog</td>
-    <td align="center">Kanban Board</td>
+    <td align="center"><strong>Project Settings / Team Labels</strong></td>
+    <td align="center"><strong>Profile Page</strong></td>
   </tr>
   <tr>
     <td><img src="https://github.com/user-attachments/assets/ff2398de-710b-4a92-ba05-18819467f42a" alt="Project Settings" /></td>
     <td><img src="https://github.com/user-attachments/assets/ee4abe9c-c95c-4646-be0f-e408dbe225a5" alt="Profile Page" /></td>
   </tr>
   <tr>
-    <td align="center">Project Settings / Team Labels</td>
-    <td align="center">Profile Page</td>
+    <td align="center"><strong>Settings Page</strong></td>
+    <td align="center"><strong>Ticket Assignment Email</strong></td>
   </tr>
   <tr>
-    <td colspan="2" align="center"><img src="https://github.com/user-attachments/assets/e059a3ad-f4cf-420b-b554-83251c1c3fa8" alt="Settings Page" /></td>
-  </tr>
-  <tr>
-    <td colspan="2" align="center">Settings Page</td>
+    <td><img src="https://github.com/user-attachments/assets/e059a3ad-f4cf-420b-b554-83251c1c3fa8" alt="Settings Page" /></td>
+    <td><img src="https://github.com/user-attachments/assets/aaa2557e-44f3-4a9d-b4f6-7b20abe94e42" alt="Ticket Assignment Email" /></td>
   </tr>
 </table>
 
