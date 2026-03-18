@@ -103,11 +103,6 @@
             <version>${springdoc.version}</version>
         </dependency>
 
-        <!-- Mail (Resend SMTP) -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-mail</artifactId>
-        </dependency>
 
         <!-- Test -->
         <dependency>
