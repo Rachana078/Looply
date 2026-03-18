@@ -96,7 +96,7 @@ public class AuthService {
         return new MessageResponse("Check your inbox — we've sent a verification link to " + user.getEmail());
     }
 
-    public AuthResponse verifyEmail(String token, HttpServletResponse response) {
+    public MessageResponse verifyEmail(String token) {
         EmailVerificationToken vt = verificationTokenRepository.findByToken(token)
                 .orElseThrow(() -> new InvalidCredentialsException("Invalid or expired verification link"));
         if (vt.isUsed()) {
@@ -112,7 +112,7 @@ public class AuthService {
         verificationTokenRepository.save(vt);
 
         emailService.sendWelcomeEmail(user.getEmail(), user.getUsername());
-        return issueTokens(user, response);
+        return new MessageResponse("Email verified successfully. You can now sign in.");
     }
 
     public MessageResponse resendVerification(String email) {

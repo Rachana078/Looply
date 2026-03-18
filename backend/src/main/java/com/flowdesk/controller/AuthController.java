@@ -1,6 +1,5 @@
 package com.flowdesk.controller;
 
-import com.flowdesk.dto.AuthResponse;
 import com.flowdesk.dto.ChangePasswordRequest;
 import com.flowdesk.dto.LoginRequest;
 import com.flowdesk.dto.MessageResponse;
@@ -41,9 +40,8 @@ public class AuthController {
 
     @GetMapping("/verify-email")
     @Operation(summary = "Verify email address via token link")
-    public ResponseEntity<AuthResponse> verifyEmail(@RequestParam String token,
-                                                     HttpServletResponse response) {
-        return ResponseEntity.ok(authService.verifyEmail(token, response));
+    public ResponseEntity<MessageResponse> verifyEmail(@RequestParam String token) {
+        return ResponseEntity.ok(authService.verifyEmail(token));
     }
 
     @PostMapping("/resend-verification")

@@ -1,14 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
-import { useAuthStore } from '../store/authStore';
-import type { AuthResponse } from '../types/auth';
 import Logo from '../components/Logo';
 
 export default function VerifyEmailPage() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
-  const setAuth = useAuthStore(s => s.setAuth);
   const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
   const [message, setMessage] = useState('');
   const calledRef = useRef(false);
@@ -23,11 +20,10 @@ export default function VerifyEmailPage() {
       setMessage('No verification token found in the link.');
       return;
     }
-    api.get<AuthResponse>(`/auth/verify-email?token=${token}`)
-      .then(({ data }) => {
-        setAuth(data.accessToken, data.user);
+    api.get(`/auth/verify-email?token=${token}`)
+      .then(() => {
         setStatus('success');
-        setTimeout(() => navigate('/'), 2000);
+        setTimeout(() => navigate('/login'), 2000);
       })
       .catch((err: unknown) => {
         const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
@@ -60,7 +56,7 @@ export default function VerifyEmailPage() {
                 </svg>
               </div>
               <h2 className="text-xl font-bold text-gray-900 mb-2">Email verified!</h2>
-              <p className="text-sm text-gray-500">Taking you to your dashboard…</p>
+              <p className="text-sm text-gray-500">Taking you to the login page…</p>
             </>
           )}
 
