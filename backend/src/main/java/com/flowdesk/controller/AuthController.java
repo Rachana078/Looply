@@ -1,5 +1,6 @@
 package com.flowdesk.controller;
 
+import com.flowdesk.dto.AuthResponse;
 import com.flowdesk.dto.ChangePasswordRequest;
 import com.flowdesk.dto.LoginRequest;
 import com.flowdesk.dto.MessageResponse;
